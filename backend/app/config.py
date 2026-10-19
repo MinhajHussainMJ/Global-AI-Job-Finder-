@@ -40,6 +40,7 @@ AI_MODEL = os.getenv("AI_MODEL", "gpt-4o-mini")
 ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID", "")
 ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY", "")
 INDEED_PUBLISHER_KEY = os.getenv("INDEED_PUBLISHER_KEY", "")
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY", "")
 
 SEARCH_INTERVAL_MINUTES = int(os.getenv("SEARCH_INTERVAL_MINUTES", "360"))
 MAX_JOBS_PER_SOURCE_PER_RUN = int(os.getenv("MAX_JOBS_PER_SOURCE_PER_RUN", "60"))
