@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Application, CvFile, Integration, Job, User
+from ..models import Application, CvFile, Integration, Job, SearchLog, User
 from ..security import get_current_user
 from ..services import ai_engine
 from ..worker import prefs_dict, profile_dict
@@ -189,8 +189,8 @@ def dashboard(user: User = Depends(get_current_user), db: Session = Depends(get_
     recent_apps = apps.order_by(Application.updated_at.desc()).limit(8).all()
     jmap = {j.id: j for j in db.query(Job).filter(Job.user_id == user.id,
                Job.id.in_([a.job_id for a in recent_apps] or [-1]))}
-    last_log = (db.query(__import__("..models", fromlist=["SearchLog"]).SearchLog)
-                .filter_by(user_id=user.id).order_by(__import__("..models", fromlist=["SearchLog"]).SearchLog.started_at.desc()).first())
+    last_log = (db.query(SearchLog).filter_by(user_id=user.id)
+                .order_by(SearchLog.started_at.desc()).first())
     return {
         "counts": {"discovered": discovered, "matched": matched, "prepared": prepared,
                    "submitted": submitted, "awaiting_user": awaiting, "interviews": interviews,
