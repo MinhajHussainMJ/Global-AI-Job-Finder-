@@ -64,7 +64,7 @@ function enterApp(token, user) {
   $("#view-auth").classList.add("hidden"); $("#shell").classList.remove("hidden");
   $("#user-chip").textContent = `${user.full_name || user.email} · ${user.mode}`;
   $("#consent-banner").classList.toggle("hidden", !!user.consent_accepted);
-  route(location.hash.slice(2) || "/dashboard");
+  route(); // reads location.hash itself (defaults to #/dashboard)
 }
 
 function logout() {
@@ -82,19 +82,52 @@ $("#consent-decline").addEventListener("click", logout);
 
 /* ---------------- routing ---------------- */
 const PAGES = ["dashboard", "jobs", "applications", "profile", "preferences", "integrations", "settings"];
-window.addEventListener("hashchange", () => route(location.hash.slice(2)));
+const LOADERS = { dashboard: loadDashboard, jobs: loadJobs, applications: loadApplications,
+  profile: loadProfile, preferences: loadPreferences, integrations: loadIntegrations,
+  settings: loadSettings };
 
-function route(path) {
-  const page = (path || "/dashboard").slice(1);
-  if (!PAGES.includes(page)) return location.hash = "#/dashboard";
-  if (!TOKEN) return;
-  PAGES.forEach((p) => $("#view-" + p).classList.toggle("hidden", p !== page));
+function currentPage() {
+  const page = (location.hash.replace(/^#\//, "") || "dashboard");
+  return PAGES.includes(page) ? page : "dashboard";
+}
+
+function showPage(page) {
+  for (const p of PAGES) {
+    const el = $("#view-" + p);
+    if (el) el.classList.toggle("hidden", p !== page);
+  }
   $$(".nav-link").forEach((a) => a.classList.toggle("active", a.dataset.route === page));
   $("#sidenav").classList.remove("open");
-  ({ dashboard: loadDashboard, jobs: loadJobs, applications: loadApplications,
-     profile: loadProfile, preferences: loadPreferences, integrations: loadIntegrations,
-     settings: loadSettings })[page]().catch((e) => toast(e.message, true));
 }
+
+async function renderPage(page) {
+  try { await LOADERS[page](); }
+  catch (e) {
+    console.error("Page load failed:", e);
+    toast(String(e && e.message ? e.message : e), true);
+  }
+}
+
+function route() {
+  const wanted = location.hash.replace(/^#\//, "") || "dashboard";
+  const page = PAGES.includes(wanted) ? wanted : "dashboard";
+  if (wanted !== page) { location.hash = "#/" + page; return; } // hashchange will re-route
+  showPage(page);               // swap the view FIRST — navigation never depends on the API
+  if (TOKEN) renderPage(page);  // data loading errors can't trap the user on this page
+}
+
+window.addEventListener("hashchange", route);
+
+// Direct click handlers: reliable even if a hashchange event is ever missed,
+// and they still work when deployed under any base path.
+$$(".nav-link").forEach((a) => a.addEventListener("click", (e) => {
+  const page = a.dataset.route;
+  if (!PAGES.includes(page)) return;
+  e.preventDefault();
+  if (location.hash !== "#/" + page) { location.hash = "#/" + page; return; } // hashchange routes
+  showPage(page); renderPage(page);
+}));
+
 $("#nav-toggle").addEventListener("click", () => $("#sidenav").classList.toggle("open"));
 
 /* ---------------- dashboard ---------------- */
