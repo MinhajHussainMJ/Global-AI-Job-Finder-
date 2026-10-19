@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Global AI Job Finder &amp; Auto-Apply Agent</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<div id="app">
+  <!-- ================= AUTH VIEW ================= -->
+  <section id="view-auth" class="view">
+    <div class="auth-wrap">
+      <div class="brand-hero">
+        <h1>🌍 Global AI Job Finder<span class="sub">&amp; Auto-Apply Agent</span></h1>
+        <p>Upload your CV once. The agent finds, ranks and prepares applications for jobs in
+           Pakistan, Europe, USA, Canada, the Middle East and worldwide.</p>
+        <ul class="hero-points">
+          <li>✔ Real job sources only — nothing is faked</li>
+          <li>✔ AI match scores with honest reasons &amp; gaps</li>
+          <li>✔ Cover letters &amp; answers prepared from verified facts</li>
+          <li>✔ Your CV stays private to your account</li>
+        </ul>
+      </div>
+      <div class="card auth-card">
+        <div class="tabs">
+          <button class="tab active" data-authtab="login">Log in</button>
+          <button class="tab" data-authtab="register">Create account</button>
+        </div>
+        <form id="form-login" class="auth-form">
+          <label>Email <input type="email" name="email" required autocomplete="email" /></label>
+          <label>Password <input type="password" name="password" required autocomplete="current-password" /></label>
+          <button class="btn primary" type="submit">Log in</button>
+        </form>
+        <form id="form-register" class="auth-form hidden">
+          <label>Full name <input type="text" name="full_name" /></label>
+          <label>Email <input type="email" name="email" required autocomplete="email" /></label>
+          <label>Password (min 8 chars) <input type="password" name="password" minlength="8" required autocomplete="new-password" /></label>
+          <label class="radio-row">Account mode:
+            <select name="mode">
+              <option value="general">General user</option>
+              <option value="personal">Personal (upload once, continuous search)</option>
+            </select>
+          </label>
+          <button class="btn primary" type="submit">Create account</button>
+        </form>
+        <div id="auth-msg" class="msg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= APP SHELL ================= -->
+  <div id="shell" class="hidden">
+    <header class="topbar">
+      <button id="nav-toggle" class="icon-btn" aria-label="Menu">☰</button>
+      <span class="logo">🌍 JobFinder<span>Agent</span></span>
+      <span id="user-chip" class="user-chip"></span>
+    </header>
+    <div class="layout">
+      <nav id="sidenav">
+        <a href="#/dashboard" class="nav-link" data-route="dashboard">📊 Dashboard</a>
+        <a href="#/jobs" class="nav-link" data-route="jobs">🔎 Jobs</a>
+        <a href="#/applications" class="nav-link" data-route="applications">📝 Applications</a>
+        <a href="#/profile" class="nav-link" data-route="profile">👤 My Profile &amp; CV</a>
+        <a href="#/preferences" class="nav-link" data-route="preferences">⚙️ Job Preferences</a>
+        <a href="#/integrations" class="nav-link" data-route="integrations">🔌 Integrations</a>
+        <a href="#/settings" class="nav-link" data-route="settings">🔒 Privacy &amp; Account</a>
+        <button id="btn-logout" class="btn ghost logout">Log out</button>
+      </nav>
+      <main id="main">
+        <!-- CONSENT BANNER -->
+        <div id="consent-banner" class="banner hidden">
+          <p><strong>Consent &amp; privacy:</strong> This app stores your CV privately on this server,
+          parses it to build your profile, searches permitted public job APIs, and prepares application
+          documents. It never fabricates qualifications and never marks an application as submitted
+          without your real confirmation. You can export or permanently delete all data at any time.</p>
+          <div class="row gap"><button id="consent-accept" class="btn primary">I agree — continue</button>
+          <button id="consent-decline" class="btn ghost">Decline &amp; log out</button></div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <section id="view-dashboard" class="page hidden">
+          <div class="page-head">
+            <h2>Dashboard</h2>
+            <div class="row gap">
+              <button id="btn-run-search" class="btn primary">▶ Run job search now</button>
+            </div>
+          </div>
+          <div id="search-result-note" class="msg"></div>
+          <div id="dash-counts" class="stat-grid"></div>
+          <div class="two-col">
+            <div class="card"><h3>⏰ Deadlines within 7 days</h3><div id="dash-deadlines" class="list"></div></div>
+            <div class="card"><h3>🔔 Awaiting your action / follow-ups</h3><div id="dash-awaiting" class="list"></div></div>
+          </div>
+          <div class="card"><h3>🕘 Recent applications</h3><div id="dash-recent" class="list"></div></div>
+          <div class="card"><h3>🧭 Background search log</h3><div id="dash-log" class="list small"></div></div>
+        </section>
+
+        <!-- JOBS -->
+        <section id="view-jobs" class="page hidden">
+          <div class="page-head"><h2>Discovered jobs</h2>
+            <div class="row gap wrap">
+              <input id="jobs-q" class="input" placeholder="Search title/company/location…" />
+              <select id="jobs-status" class="input">
+                <option value="">All statuses</option><option value="matched">Matched</option>
+                <option value="new">New</option><option value="expired">Expired</option>
+              </select>
+              <select id="jobs-score" class="input">
+                <option value="0">Any score</option><option value="55">Score ≥ 55</option>
+                <option value="70">Score ≥ 70</option><option value="85">Score ≥ 85</option>
+              </select>
+              <label class="check"><input type="checkbox" id="jobs-bookmarked" /> Bookmarked</label>
+              <button id="jobs-refresh" class="btn">Refresh</button>
+            </div>
+          </div>
+          <div id="jobs-list" class="stack"></div>
+          <div class="row center"><button id="jobs-more" class="btn ghost hidden">Load more</button></div>
+          <p class="muted small">Source credit: listings shown via Remotive link back to Remotive per their API terms.
+          Only genuinely connected sources return results.</p>
+        </section>
+
+        <!-- APPLICATIONS -->
+        <section id="view-applications" class="page hidden">
+          <div class="page-head"><h2>Application tracking</h2>
+            <div class="row gap wrap">
+              <input id="apps-q" class="input" placeholder="Search…" />
+              <select id="apps-status" class="input">
+                <option value="">All</option><option value="prepared">Prepared</option>
+                <option value="awaiting_user">Awaiting you</option><option value="submitted">Submitted</option>
+                <option value="interview">Interview</option><option value="rejected">Rejected</option>
+                <option value="failed">Failed</option><option value="expired">Expired</option>
+              </select>
+            </div>
+          </div>
+          <div id="apps-list" class="stack"></div>
+        </section>
+
+        <!-- PROFILE -->
+        <section id="view-profile" class="page hidden">
+          <div class="page-head"><h2>My Profile &amp; CV</h2>
+            <div class="row gap">
+              <button id="btn-download-cv" class="btn">⬇ Download current CV</button>
+              <button id="btn-example-profile" class="btn ghost">Load editable example profile</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Upload CV (PDF or DOCX, ≤10 MB)</h3>
+            <input type="file" id="cv-file" accept=".pdf,.docx" class="input" />
+            <button id="btn-upload-cv" class="btn primary">Upload &amp; parse</button>
+            <div id="cv-msg" class="msg"></div>
+            <div id="cv-history" class="small muted"></div>
+          </div>
+          <div class="card">
+            <h3>Extracted profile — review &amp; correct every field</h3>
+            <div id="profile-unverified" class="banner warn hidden">⚠ This profile is not yet confirmed.
+              Review the details below and press <em>Save &amp; confirm</em>.</div>
+            <form id="form-profile" class="grid2">
+              <label>Full name<input name="full_name" /></label>
+              <label>Email<input name="email" type="email" /></label>
+              <label>Phone<input name="phone" /></label>
+              <label>Location<input name="location" /></label>
+              <label class="span2">Headline<input name="headline" /></label>
+              <label class="span2">Summary (one paragraph per line)<textarea name="summary" rows="3"></textarea></label>
+              <label class="span2">Education (one entry per line)<textarea name="education" rows="3"></textarea></label>
+              <label class="span2">Experience (one entry per line)<textarea name="experience" rows="4"></textarea></label>
+              <label class="span2">Skills (comma separated)<textarea name="skills" rows="2"></textarea></label>
+              <label class="span2">Certifications (one per line)<textarea name="certifications" rows="2"></textarea></label>
+              <label>Languages (comma separated)<input name="languages" /></label>
+              <label>Years of experience<input name="years_experience" type="number" min="0" max="60" step="0.5" /></label>
+              <div class="span2 row gap">
+                <button type="submit" class="btn primary">Save &amp; confirm profile</button>
+                <span id="profile-saved" class="msg"></span>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- PREFERENCES -->
+        <section id="view-preferences" class="page hidden">
+          <div class="page-head"><h2>Job preferences</h2>
+            <button id="btn-example-prefs" class="btn ghost">Load example set (editable)</button>
+          </div>
+          <form id="form-prefs" class="card grid2">
+            <label class="span2">Job titles (comma separated)
+              <input name="job_titles" placeholder="AI Developer, Python Developer, Computer Science Teacher…" /></label>
+            <label class="span2">Career fields (comma separated)
+              <input name="fields" placeholder="Artificial Intelligence, Software Development, Education" /></label>
+            <fieldset class="span2"><legend>Target countries</legend>
+              <label class="check"><input type="checkbox" id="prefs-worldwide" checked /> Worldwide search</label>
+              <div id="country-checks" class="chip-grid"></div>
+            </fieldset>
+            <label class="span2">Cities (optional, comma separated)<input name="cities" /></label>
+            <fieldset class="span2"><legend>Work mode</legend><div id="mode-checks" class="chip-grid"></div></fieldset>
+            <fieldset class="span2"><legend>Employment type</legend><div id="emp-checks" class="chip-grid"></div></fieldset>
+            <label>Minimum salary <input name="min_salary" type="number" min="0" step="100" value="0" /></label>
+            <label>Currency
+              <select name="currency"><option>USD</option><option>EUR</option><option>GBP</option>
+              <option>CAD</option><option>AED</option><option>SAR</option><option>QAR</option><option>PKR</option></select></label>
+            <label>Minimum experience (years)<input name="min_experience_years" type="number" min="0" max="40" step="0.5" value="0" /></label>
+            <label>Search frequency (hours)<input name="search_frequency_hours" type="number" min="1" max="168" value="12" /></label>
+            <label class="span2">Required qualifications (one per line)
+              <textarea name="qualifications" rows="2" placeholder="Degree recognition abroad, B.Ed/PGCE/TEFL…"></textarea></label>
+            <label class="check span2"><input type="checkbox" name="visa_sponsorship_required" /> I require visa sponsorship</label>
+            <label class="check span2"><input type="checkbox" name="open_to_relocation" /> Open to relocation</label>
+            <label class="check span2"><input type="checkbox" name="english_ok" checked /> English applications are fine</label>
+            <fieldset class="span2"><legend>Job sources (only genuinely working sources return results)</legend>
+              <div id="source-checks" class="stack small"></div></fieldset>
+            <fieldset class="span2"><legend>Auto-Apply agent</legend>
+              <div class="chip-grid radio">
+                <label class="check"><input type="radio" name="auto_apply_mode" value="find_only" checked /> Find only</label>
+                <label class="check"><input type="radio" name="auto_apply_mode" value="prepare" /> Prepare applications</label>
+                <label class="check"><input type="radio" name="auto_apply_mode" value="auto_apply" /> Auto-apply</label>
+              </div>
+              <label class="check"><input type="checkbox" name="auto_apply_authorized" id="aa-auth" />
+                I authorize automated submissions where a platform permits it, understand CAPTCHA/assessments pause for me,
+                and that no fabricated information will ever be sent.</label>
+              <label>Max auto-prepared applications per day
+                <input name="max_auto_applications_per_day" type="number" min="0" max="50" value="5" /></label>
+            </fieldset>
+            <div class="span2 row gap"><button class="btn primary" type="submit">Save preferences</button>
+            <span id="prefs-msg" class="msg"></span></div>
+          </form>
+        </section>
+
+        <!-- INTEGRATIONS -->
+        <section id="view-integrations" class="page hidden">
+          <div class="page-head"><h2>Integrations &amp; job sources</h2></div>
+          <p class="muted">We only mark a source “Active” when its connection genuinely works.
+          Sources needing credentials show a configuration guide — keys live on the server (<code>backend/.env</code>),
+          never in the browser.</p>
+          <div id="integ-list" class="stack"></div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section id="view-settings" class="page hidden">
+          <div class="page-head"><h2>Privacy &amp; account</h2></div>
+          <div class="card"><h3>Data stored about you</h3><div id="privacy-info" class="small"></div>
+            <button id="btn-export" class="btn">Export my data (JSON)</button></div>
+          <div class="card"><h3>Change password</h3>
+            <form id="form-pass" class="grid2">
+              <label>Current password<input type="password" name="current_password" required /></label>
+              <label>New password<input type="password" name="new_password" minlength="8" required /></label>
+              <div class="span2 row gap"><button class="btn primary">Update password</button><span id="pass-msg" class="msg"></span></div>
+            </form></div>
+          <div class="card danger"><h3>Delete everything</h3>
+            <p>Permanently removes your account, CV files, profile, jobs and application history.</p>
+            <form id="form-delete" class="grid2">
+              <label>Password<input type="password" name="password" required /></label>
+              <label>Type <code>DELETE MY DATA</code><input name="confirm_text" required /></label>
+              <div class="span2 row gap"><button class="btn red">Delete my account &amp; data</button><span id="del-msg" class="msg"></span></div>
+            </form></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- JOB DETAIL MODAL -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box card">
+      <button id="modal-close" class="icon-btn right">✕</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
